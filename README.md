@@ -22,3 +22,19 @@ python3 scanPDFs.py > meusComprovantesPDF.csv
 ```
 
 O arquivo gerado é um arquivo CSV, e poderá então ser importado para planilhas, bancos de dados ou outras ferramentas de análise.
+
+## ScanIMG
+
+Similar ao script ScanPDFs porém mais complexo na instalação e menos acertivo nos resultados, por depender de OCR. Evebtualmente com passo de OCR externo e/ou HTML, poderá ser mais acertivo.
+
+Como usar:
+```bash
+sudo apt install tesseract-ocr tesseract-ocr-por
+pip install pytesseract pillow pandas openpyxl
+# se necessário `pip install --upgrade "Pillow>=8.0.0"` para versao correta
+
+python3 extrai_comprovantes.py comprovantes1.zip saida_comprovantes.xlsx
+```
+Resultados: arquivos `saida_comprovantes.xlsx` e `saida_comprovantes.csv`.  XLSX grande pois inclui extrações OCR para auditoria.
+
+
