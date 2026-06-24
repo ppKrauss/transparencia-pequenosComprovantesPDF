@@ -23,7 +23,7 @@ python3 scanPDFs.py > meusComprovantesPDF.csv
 
 O arquivo gerado é um arquivo CSV, e poderá então ser importado para planilhas, bancos de dados ou outras ferramentas de análise.
 
-## ScanIMG
+## ScanIMGs
 
 Similar ao script ScanPDFs porém mais complexo na instalação e menos acertivo nos resultados, por depender de OCR. Evebtualmente com passo de OCR externo e/ou HTML, poderá ser mais acertivo.
 
