@@ -10,14 +10,14 @@ Dependência do sistema:
     sudo apt install tesseract-ocr tesseract-ocr-por
 
 Uso:
-    python3 scanIMG.py comprovantes1.zip saida_comprovantes.xlsx
+    python3 scanIMGs.py comprovantes1.zip saida_comprovantes.xlsx
 
 Também aceita pasta:
-    python3 scanIMG.py ./imagens saida_comprovantes.xlsx
+    python3 scanIMGs.py ./imagens saida_comprovantes.xlsx
 """
 
+import argparse
 import re
-import sys
 import zipfile
 import tempfile
 import unicodedata
@@ -29,6 +29,8 @@ import pytesseract
 
 
 IMG_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff"}
+DEFAULT_INPUT_PATH = "comprovantes1.zip"
+DEFAULT_OUTPUT_XLSX = "saida_comprovantes.xlsx"
 
 
 def norm(txt: str) -> str:
@@ -261,6 +263,25 @@ def image_files_from_input(input_path: Path):
     raise ValueError(f"Entrada não reconhecida: {input_path}")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Executa OCR e extrai dados estruturados de comprovantes bancários em imagens."
+    )
+    parser.add_argument(
+        "input_path",
+        nargs="?",
+        default=DEFAULT_INPUT_PATH,
+        help="ZIP, pasta ou imagem a processar. Se omitido, usa comprovantes1.zip.",
+    )
+    parser.add_argument(
+        "output_xlsx",
+        nargs="?",
+        default=DEFAULT_OUTPUT_XLSX,
+        help="Planilha XLSX de saída. Se omitido, usa saida_comprovantes.xlsx.",
+    )
+    return parser.parse_args()
+
+
 def process_file(path: Path):
     try:
         text = ocr_image(path)
@@ -324,12 +345,9 @@ def process_file(path: Path):
 
 
 def main():
-    if len(sys.argv) < 3:
-        print("Uso: python3 scanIMG.py <zip-ou-pasta> <saida.xlsx>")
-        sys.exit(1)
-
-    input_path = Path(sys.argv[1])
-    output_xlsx = Path(sys.argv[2])
+    args = parse_args()
+    input_path = Path(args.input_path)
+    output_xlsx = Path(args.output_xlsx)
 
     files, tmp = image_files_from_input(input_path)
     print(f"Imagens encontradas: {len(files)}")
