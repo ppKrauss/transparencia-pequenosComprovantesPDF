@@ -59,8 +59,23 @@ from datetime import datetime
 
 folder_path = Path(buscar_PDFs_aqui)
 globStop = False
-minBytes = minText*2 + layoutBytes
+stopFileNames = set(stopFiles)
 maxBytes = maxText*2 + layoutBytes*2
+
+
+def compile_pattern_pairs(label_pattern_pairs):
+    return [
+        (rotulo, re.compile(xpat) if xpat else None)
+        for rotulo, xpat in label_pattern_pairs
+    ]
+
+
+patterns = compile_pattern_pairs(patterns)
+emissorPatterns = compile_pattern_pairs(emissorPatterns)
+pixPatterns = {
+    emissor: compile_pattern_pairs(pattern_pairs)
+    for emissor, pattern_pairs in pixPatterns.items()
+}
 
 
 def get_sha1_subprocess(file_path):
@@ -68,16 +83,17 @@ def get_sha1_subprocess(file_path):
     return result.stdout.split()[0]
 
 def extract_SEP(text):
-    return str(text).replace(outputCSV_SEP, '-')
+    return str(text).replace(outputCSV_SEP, '-').replace('\r', ' ').replace('\n', ' ').strip()
 
 def extract_br_date(text):
-	match = re.search(r'(\d{1,2})/(\d{1,2})/(\d{4})', text)
-	if match:
-	    return str(
-	      datetime.strptime(match.group(0), '%d/%m/%Y')
-	    )[0:10]
-	else:
-	    return text
+    text = text or ''
+    match = re.search(r'(\d{1,2})/(\d{1,2})/(\d{4})', text)
+    if not match:
+        return text
+    try:
+        return datetime.strptime(match.group(0), '%d/%m/%Y').date().isoformat()
+    except ValueError:
+        return text
 
 def extract_patterns(label_pattern_pairs, text, retLabel=False):
     valores=[]
@@ -85,7 +101,7 @@ def extract_patterns(label_pattern_pairs, text, retLabel=False):
         if not xpat:
             valores.append('')
             continue
-        m = re.search(xpat, text)
+        m = xpat.search(text)
         if retLabel:
             valores.append(rotulo if m else '')
         else:
@@ -95,70 +111,83 @@ def extract_patterns(label_pattern_pairs, text, retLabel=False):
     return valores
 
 
-def getPixPdf(file,id):
-    global globStop, patterns, minText, maxText, maxBytes, stopOnNoPattern, stopOnSizeError
-    retVals = []  # for CSV returns
+def build_error_row(id, doc_tipo, doc_emissor, fileVals, reg_data, reg_status):
+    return [str(id), doc_tipo, doc_emissor] + fileVals + [
+        reg_data, reg_status, '', '', '', '', ''
+    ]
 
+
+def detect_emissor(text):
+    matches = extract_patterns(emissorPatterns, text, True)
+    return next((emissor for emissor in matches if emissor), 'generico')
+
+
+def getPixPdf(file,id):
+    global globStop
     with open(file, "rb") as arquivo_pdf:
-        lenBytes = file.stat().st_size
+        file_stat = file.stat()
+        lenBytes = file_stat.st_size
         # file_date_create = datetime.fromtimestamp( file.stat().st_ctime ).date().isoformat()  # criacao
-        file_date_create = datetime.fromtimestamp( file.stat().st_mtime ).date().isoformat()  # modificacao
+        file_date_create = datetime.fromtimestamp( file_stat.st_mtime ).date().isoformat()  # modificacao
         # bad sha1sum = hashlib.file_digest(f,"sha1").hexdigest()
         sha1sum = get_sha1_subprocess(file)
         fileVals = [file.name,sha1sum,file_date_create]
-        errVals  = [str(id),'undefined','generico']+ fileVals
         if lenBytes>maxBytes:
             print("---- Tamanho excedeu o limite de bytes ----", file=sys.stderr)
             print(" arquivo: "+file.name, file=sys.stderr)
             globStop = stopOnSizeError
-            return  errVals+['','err01','','','','']
+            return build_error_row(id, 'undefined', 'generico', fileVals, '', 'err01')
         leitor = pypdf.PdfReader(arquivo_pdf)
         # Itere por todas as páginas
-        fullText = ""
+        text_parts = []
+        lenText = 0
         for i, pagina in enumerate(leitor.pages):
-            texto = pagina.extract_text()
-            fullText = fullText+texto
+            texto = pagina.extract_text() or ''
+            text_parts.append(texto)
+            lenText += len(texto)
+            if lenText > maxText:
+                break
+        fullText = "\n".join(text_parts)
 
     lenText = len(fullText)
     if lenText>maxText:
         print("---- Tamanho excedeu o limite de caracteres no texto ----", file=sys.stderr)
         print(" arquivo: "+file.name, file=sys.stderr)
         globStop = stopOnSizeError
-        return errVals+['err02','','','','']
+        return build_error_row(id, 'undefined', 'generico', fileVals, '', 'err02')
 
     for tipo,pattern in patterns:
-        if pattern>'':
-            match = re.search(pattern, fullText)
+        if pattern:
+            match = pattern.search(fullText)
             if match:
                 data_comprovante = extract_br_date(
                   match.group(1).strip() if match else None
                 )
-                emissor = extract_patterns(emissorPatterns,fullText,True)
-                e = emissor[0] if emissor[0]>'' else 'generico'
+                e = detect_emissor(fullText)
                 baseVals = [str(id), tipo, e, file.name, sha1sum, file_date_create]
                 if tipo=="Pix":
                     baseVals.append(data_comprovante)
-                    vals = extract_patterns(pixPatterns[e],fullText)
+                    vals = extract_patterns(pixPatterns.get(e, pixPatterns['generico']),fullText)
                     linha = baseVals + ['ok-auto'] + vals
                 elif tipo=="Pagamento":
                     baseVals.append(data_comprovante)
                     # vals = ['','','']
-                    vals = extract_patterns(pixPatterns[e],fullText)
+                    vals = extract_patterns(pixPatterns.get(e, pixPatterns['generico']),fullText)
                     linha = baseVals + ['ok-auto'] + vals
                 else:
-                    linha = baseVals + ['', 'err03','','','']
+                    linha = baseVals + ['', 'err03','','','','','']
                 return linha
     print("---- TEXTO SEM PADRAO RECONHECIDO! ----", file=sys.stderr)
     print(fullText, file=sys.stderr)
     globStop = stopOnNoPattern
-    return errVals+['err04','','','','']
+    return build_error_row(id, 'undefined', 'generico', fileVals, '', 'err04')
 
 qt =1
-pdf_files = list(folder_path.glob("*.pdf"))
+pdf_files = folder_path.glob("*.pdf")
 
 print (csv_header)
 for file in pdf_files:
-    if file.name not in stopFiles:
+    if file.name not in stopFileNames:
         print( outputCSV_SEP.join( getPixPdf(file,qt) ) )
         qt = qt+1
         if globStop:
