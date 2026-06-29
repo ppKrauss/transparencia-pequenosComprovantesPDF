@@ -1,0 +1,18 @@
+# Local calibration corpora and raw archives.
+/comprovantes1/
+/resolvido/
+/comprovantes1.zip
+/resolvido2.zip
+
+# Generated reports in the repository root.
+/saida_comprovantes.csv
+/saida_comprovantes.xlsx
+/meusComprovantesPDF.csv
+/meusComprovantesPDF.xlsx
+
+# Python local state.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
