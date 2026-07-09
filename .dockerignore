@@ -1,0 +1,14 @@
+.git
+.github
+.agents
+.codex
+.pytest_cache
+.venv
+venv
+__pycache__
+*.pyc
+comprovantes1/
+resolvido/
+*.zip
+*.csv
+*.xlsx
