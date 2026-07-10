@@ -8,23 +8,29 @@ a instituição financeira usada no pagamento.
 
 ## Organização incremental do repositório
 
-A estrutura atual deve evoluir sem quebrar o uso dos scripts existentes. Uma
-organização sugerida é:
+A estrutura evoluiu para um pacote Python modular sem quebrar o uso dos nomes
+antigos. Os scripts `scanPDFs.py` e `scanIMGs.py` agora funcionam como wrappers
+de compatibilidade para a CLI unificada.
 
 ```text
 .
 ├── docs/                 # arquitetura, formatos, guias de contribuição
-├── src/                  # módulos Python quando os scripts forem empacotados
+├── src/                  # pacote Python e wrappers de compatibilidade
+│   └── transparencia_comprovantes/
+│       ├── patterns/     # regras YAML de reconhecimento e extração
+│       ├── cli.py        # entrada unificada comprovantes-scan
+│       ├── pdf.py        # processamento de PDFs textuais
+│       └── images.py     # processamento de imagens/OCR
 ├── data/                 # metadados, amostras anonimizadas e inventários
 │   └── _out/             # extrações, relatórios e comprovantes de integridade
 ├── tests/                # testes automatizados e fixtures pequenas
 ├── demo/                 # planilhas e saídas demonstrativas
-├── scanPDFs.py           # entrada atual para PDFs textuais
-└── scanIMGs.py           # entrada atual para imagens/OCR
+├── Dockerfile            # imagem com dependências Python e Tesseract
+└── .github/workflows/    # PR-CI-CD no GitHub Actions
 ```
 
-Enquanto a refatoração para `src/` não acontece, os scripts da raiz continuam
-funcionando como pontos de entrada estáveis.
+O ponto de entrada recomendado é `comprovantes-scan`. Os wrappers em `src/`
+continuam disponíveis para fluxos antigos.
 
 ## Módulos do sistema
 
@@ -103,7 +109,7 @@ artefatos gerados e lógica de extração.
 
 1. Criar fixtures anonimizadas pequenas em `data/samples/` ou `tests/fixtures/`.
 2. Definir schema comum de saída para PDF e OCR.
-3. Separar padrões por emissor em arquivos próprios.
+3. Separar padrões por emissor em arquivos YAML próprios quando o volume crescer.
 4. Criar testes de TextPatterns usando textos extraídos anonimizados.
-5. Migrar gradualmente lógica reutilizável para `src/`.
-6. Manter os scripts da raiz como wrappers durante a transição.
+5. Adicionar fixtures anonimizadas para testes de ponta a ponta com PDF/imagem.
+6. Definir o destino real do CD para substituir o placeholder seguro.

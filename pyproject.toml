@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "transparencia-pequenos-comprovantes-pdf"
+version = "0.1.0"
+description = "Extracao de dados de pequenos comprovantes PDF e imagens por regras configuraveis."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "openpyxl>=3.1",
+  "pandas>=2.0",
+  "pillow>=10.0",
+  "pypdf>=4.0",
+  "pytesseract>=0.3",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+comprovantes-scan = "transparencia_comprovantes.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"transparencia_comprovantes.patterns" = ["*.yml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

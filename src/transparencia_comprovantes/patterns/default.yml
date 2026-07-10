@@ -1,0 +1,182 @@
+settings:
+  csv_separator: "|"
+  stop_on_no_pattern: true
+  stop_on_size_error: false
+  min_text_chars: 1000
+  max_text_chars: 20000
+  layout_bytes: 50000
+  pdf_csv_header:
+    - ID
+    - doc_tipo
+    - doc_emissor
+    - doc_fileName
+    - doc_sha1
+    - doc_file_date
+    - reg_data
+    - reg_status
+    - reg_valor
+    - para_conta
+    - para_nome
+    - para_info
+    - etc
+
+pdf:
+  document_patterns:
+    - label: Pix
+      pattern: "Comprovante\\s+d[eo]\\s+Pix[\\s\\n\\r]+(.+)[\\s\\n\\r]+Valor pago[\\s\\n\\r]+.+[\\s\\n\\r]+"
+    - label: Pagamento
+      pattern: "Comprovante\\s+d[eo]\\s+Pagamento[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+    - label: TED
+      pattern: "Comprovante\\s+d[ea]\\s+(Transferencia|Transferência)[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+    - label: Outros
+      pattern: "(Claro NXT Telecomunicacoes|Claro NXT Telecomunicações|Documento de Arrecadacao|Documento de Arrecadação|Comprovante d[eo] [aA]gendamento|Recomendamos a impressao desse Comprovante|Recomendamos a impressão desse Comprovante)"
+  emitter_patterns:
+    - label: Santander
+      pattern: "[Cc]entral\\s+de\\s+[Aa]tendimento\\s+Santander"
+    - label: Bradesco
+      pattern: "Alo\\s+Bradesco|Alô\\s+Bradesco"
+  field_patterns:
+    generico:
+      - label: valor_pago
+        pattern: "Valor pago[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+      - label: forma_pgmnto
+        pattern: "Forma de pagamento[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+      - label: para_recebedor
+        pattern: "Dados do recebedor[\\s\\n\\r]+Para[\\s\\n\\r]+(.+)"
+      - label: info_recebedor
+        pattern: "Informacao para o recebedor[\\s\\n\\r]+(.+)[\\s\\n\\r]+|Informação para o recebedor[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+      - label: ignorado1
+        pattern: ""
+    Santander:
+      - label: valor_pago
+        pattern: "Valor pago[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+      - label: forma_pgmnto
+        pattern: "Forma de pagamento[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+      - label: para_recebedor
+        pattern: "Dados do recebedor[\\s\\n\\r]+Para[\\s\\n\\r]+(.+)"
+      - label: info_recebedor
+        pattern: "Informacao para o recebedor[\\s\\n\\r]+(.+)[\\s\\n\\r]+|Informação para o recebedor[\\s\\n\\r]+(.+)[\\s\\n\\r]+"
+      - label: ignorado1
+        pattern: ""
+
+images:
+  marker_terms:
+    - pagamento
+    - pix
+    - ted
+    - doc
+    - transferencia
+    - transferência
+    - autenticacao
+    - autenticação
+    - codigo de barras
+    - código de barras
+    - comprovante
+    - transacao
+    - transação
+  emitter_patterns:
+    - label: Santander
+      pattern: "santander|central de atendimento santander"
+      flags: [IGNORECASE]
+    - label: Bradesco
+      pattern: "bradesco"
+      flags: [IGNORECASE]
+    - label: Itau
+      pattern: "itau|itaú"
+      flags: [IGNORECASE]
+    - label: Nubank
+      pattern: "nubank"
+      flags: [IGNORECASE]
+    - label: Caixa
+      pattern: "caixa economica|caixa econômica"
+      flags: [IGNORECASE]
+    - label: Banco do Brasil
+      pattern: "banco do brasil"
+      flags: [IGNORECASE]
+  type_patterns:
+    - label: TED agendada
+      pattern: "ted agendada"
+      flags: [IGNORECASE]
+    - label: TED
+      pattern: "\\bted\\b"
+      flags: [IGNORECASE]
+    - label: PIX
+      pattern: "\\bpix\\b"
+      flags: [IGNORECASE]
+    - label: DOC
+      pattern: "\\bdoc\\b"
+      flags: [IGNORECASE]
+    - label: pagamento_boleto_convenio
+      pattern: "codigo de barras|código de barras|convenio de arrecadacao"
+      flags: [IGNORECASE]
+    - label: pagamento
+      pattern: "pagamento realizado com sucesso"
+      flags: [IGNORECASE]
+    - label: transferencia
+      pattern: "transferencia|transferência"
+      flags: [IGNORECASE]
+  field_patterns:
+    generico:
+      - label: valor
+        pattern: "\\bValor[:\\s]*\\n?\\s*(R\\$\\s*[\\d\\.\\,]+)|\\bR\\$\\s*([\\d\\.\\,]+)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: codigo_transacao
+        pattern: "Autentica[cç][aã]o(?: banc[aá]ria)?[:\\s]*\\n?\\s*([A-Z0-9]{10,})|(?:ID|Identificador|Controle)[:\\s]*\\n?\\s*([A-Z0-9\\-]{10,})"
+        flags: [IGNORECASE, MULTILINE]
+      - label: data_transacao
+        pattern: "Data da transa[cç][aã]o[:\\s]*\\n?\\s*(\\d{2}/\\d{2}/\\d{4}(?:\\s+\\d{2}:\\d{2}:\\d{2})?)|(\\d{2}/\\d{2}/\\d{4}\\s+\\d{2}:\\d{2}:\\d{2})"
+        flags: [IGNORECASE, MULTILINE]
+      - label: data_pagamento
+        pattern: ""
+      - label: beneficiario
+        pattern: "(?:Benefici[aá]rio|Favorecido|Recebedor|Destino)[:\\s]*\\n?\\s*(.+?)(?:\\n|CPF|CNPJ|Banco|Institui)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: conta_beneficiario
+        pattern: "Conta(?: de Destino| destino)?[:\\s]*\\n?\\s*([0-9\\/\\.\\-]+)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: pagador
+        pattern: "(?:Pagador|Nome Origem|Nome)[:\\s]*\\n?\\s*(.+?)(?:\\n|Conta|CPF|CNPJ)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: conta_pagador
+        pattern: ""
+      - label: cpf_cnpj_beneficiario
+        pattern: "CPF/CNPJ[:\\s]*\\n?\\s*([0-9\\.\\-\\/]+)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: instituicao_beneficiario
+        pattern: ""
+      - label: codigo_barras
+        pattern: ""
+    Santander:
+      - label: valor
+        pattern: "\\bValor[:\\s]*\\n?\\s*(R\\$\\s*[\\d\\.\\,]+)|\\bValor[:\\s]*\\n?\\s*([\\d\\.\\,]+)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: codigo_transacao
+        pattern: "Autenticacao bancaria[:\\s]*\\n?\\s*([A-Z0-9]{10,})|Autenticacao[:\\s]*\\n?\\s*([A-Z0-9]{10,})|Autentica[cç][aã]o banc[aá]ria[:\\s]*\\n?\\s*([A-Z0-9]{10,})|Autentica[cç][aã]o[:\\s]*\\n?\\s*([A-Z0-9]{10,})"
+        flags: [IGNORECASE, MULTILINE]
+      - label: data_transacao
+        pattern: "Data da transa[cç][aã]o[:\\s]*\\n?\\s*(\\d{2}/\\d{2}/\\d{4}(?:\\s+\\d{2}:\\d{2}:\\d{2})?)|Data da Transacao[:\\s]*\\n?\\s*(\\d{2}/\\d{2}/\\d{4}(?:\\s+\\d{2}:\\d{2}:\\d{2})?)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: data_pagamento
+        pattern: "Data de Pagamento[:\\s]*\\n?\\s*(\\d{2}/\\d{2}/\\d{4})|Data de Agendamento[:\\s]*\\n?\\s*(\\d{2}/\\d{2}/\\d{4})"
+        flags: [IGNORECASE, MULTILINE]
+      - label: beneficiario
+        pattern: "Empresa[:\\s]*\\n?\\s*(.+?)(?:\\n|Convenio|Convênio)|Nome Destino[:\\s]*\\n?\\s*(.+?)(?:\\n|Instituicao|Instituição|CPF/CNPJ)|Favorecido[:\\s]*\\n?\\s*(.+?)(?:\\n|Instituicao|Instituição|CPF/CNPJ)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: conta_beneficiario
+        pattern: "Convenio de Arrecadacao[:\\s]*\\n?\\s*([0-9]+)|Conv[eê]nio de Arrecada[cç][aã]o[:\\s]*\\n?\\s*([0-9]+)|Conta de Destino[:\\s]*\\n?\\s*([0-9\\/\\.\\-]+)|Conta Destino[:\\s]*\\n?\\s*([0-9\\/\\.\\-]+)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: pagador
+        pattern: "Nome[:\\s]*\\n?\\s*(.+?)(?:\\n|Conta de Destino)|Nome Origem[:\\s]*\\n?\\s*(.+?)(?:\\n|Conta de Destino)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: conta_pagador
+        pattern: "Conta Origem[:\\s]*\\n?\\s*([0-9\\/\\.\\-]+)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: cpf_cnpj_beneficiario
+        pattern: "CPF/CNPJ[:\\s]*\\n?\\s*([0-9\\.\\-\\/]+)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: instituicao_beneficiario
+        pattern: "Instituicao[:\\s]*\\n?\\s*(.+?)(?:\\n|CPF/CNPJ|Tipo Conta)|Institui[cç][aã]o[:\\s]*\\n?\\s*(.+?)(?:\\n|CPF/CNPJ|Tipo Conta)"
+        flags: [IGNORECASE, MULTILINE]
+      - label: codigo_barras
+        pattern: "Codigo de Barras[:\\s]*\\n?\\s*([0-9\\-\\s\\.]+(?:\\n[0-9\\-\\s\\.]+)?)|C[oó]digo de Barras[:\\s]*\\n?\\s*([0-9\\-\\s\\.]+(?:\\n[0-9\\-\\s\\.]+)?)"
+        flags: [IGNORECASE, MULTILINE]

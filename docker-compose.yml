@@ -1,0 +1,8 @@
+services:
+  scanner:
+    build: .
+    image: transparencia-comprovantes:local
+    volumes:
+      - ./data:/data
+    working_dir: /data
+    command: ["pdf", "/data/input", "-o", "/data/out/comprovantes.csv"]
