@@ -18,7 +18,9 @@ IA.
 │       ├── images.py                       # processamento de imagens/OCR
 │       ├── hashing.py                      # hashes via hashlib
 │       ├── output.py                       # CSV/XLSX
-│       └── patterns/default.yml            # regex e configuracoes
+│       └── patterns/
+│           ├── config.yml                  # configuracoes de execucao
+│           └── rules.yml                   # regex e regras de extracao
 ├── tests/                                  # testes unitarios
 ├── Dockerfile
 ├── docker-compose.yml
@@ -61,6 +63,13 @@ Usar arquivo YAML alternativo de padroes:
 comprovantes-scan pdf --patterns ./meus-padroes.yml ./resolvido -o saida.csv
 ```
 
+Tambem e possivel apontar `--patterns` para uma pasta contendo `config.yml` e
+`rules.yml`:
+
+```bash
+comprovantes-scan pdf --patterns ./minhas-regras ./resolvido -o saida.csv
+```
+
 Processar imagens, pasta ou ZIP por OCR:
 
 ```bash
@@ -77,13 +86,23 @@ python src/scanIMGs.py ./imagens saida_comprovantes.xlsx
 
 ## Regras em YAML
 
-As regex e configuracoes ficam em:
+As configuracoes e regex ficam separadas em:
 
 ```text
-src/transparencia_comprovantes/patterns/default.yml
+src/transparencia_comprovantes/patterns/config.yml
+src/transparencia_comprovantes/patterns/rules.yml
 ```
 
-O arquivo separa regras de PDF e imagens/OCR:
+O `config.yml` concentra parametros de execucao:
+
+- `settings.csv_separator`
+- `settings.stop_on_no_pattern`
+- `settings.stop_on_size_error`
+- `settings.max_text_chars`
+- `settings.layout_bytes`
+- `settings.pdf_csv_header`
+
+O `rules.yml` separa regras de PDF e imagens/OCR:
 
 - `pdf.document_patterns`: identifica tipo do comprovante.
 - `pdf.emitter_patterns`: identifica emissor/banco.
@@ -92,8 +111,9 @@ O arquivo separa regras de PDF e imagens/OCR:
 - `images.type_patterns`: identifica tipo via texto OCR.
 - `images.field_patterns`: extrai campos via texto OCR.
 
-Para adicionar um banco ou tipo de comprovante, prefira editar o YAML e criar
-testes com textos anonimizados em `tests/`.
+Para adicionar um banco ou tipo de comprovante, prefira editar `rules.yml` e
+criar testes com textos anonimizados em `tests/`. Ajustes operacionais devem ir
+para `config.yml`.
 
 ## Docker
 

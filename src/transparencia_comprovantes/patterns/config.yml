@@ -1,0 +1,21 @@
+settings:
+  csv_separator: "|"
+  stop_on_no_pattern: true
+  stop_on_size_error: false
+  min_text_chars: 1000
+  max_text_chars: 20000
+  layout_bytes: 50000
+  pdf_csv_header:
+    - ID
+    - doc_tipo
+    - doc_emissor
+    - doc_fileName
+    - doc_sha1
+    - doc_file_date
+    - reg_data
+    - reg_status
+    - reg_valor
+    - para_conta
+    - para_nome
+    - para_info
+    - etc

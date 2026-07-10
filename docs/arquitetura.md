@@ -17,7 +17,7 @@ de compatibilidade para a CLI unificada.
 ├── docs/                 # arquitetura, formatos, guias de contribuição
 ├── src/                  # pacote Python e wrappers de compatibilidade
 │   └── transparencia_comprovantes/
-│       ├── patterns/     # regras YAML de reconhecimento e extração
+│       ├── patterns/     # config.yml e rules.yml
 │       ├── cli.py        # entrada unificada comprovantes-scan
 │       ├── pdf.py        # processamento de PDFs textuais
 │       └── images.py     # processamento de imagens/OCR
@@ -73,6 +73,7 @@ Funções esperadas:
 - organizar padrões por instituição financeira;
 - associar padrões a `template-ano`;
 - manter regras separadas para PDF e OCR quando necessário;
+- manter configuracoes operacionais separadas das regras de extracao;
 - reaproveitar frases e sequencialidade comum entre PDF e OCR;
 - permitir contribuição, revisão e testes de padrões por diferentes pessoas e IAs.
 
