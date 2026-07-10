@@ -10,6 +10,7 @@ def normalize_text(text: str | None) -> str:
     text = text or ""
     text = unicodedata.normalize("NFKD", text)
     text = "".join(char for char in text if not unicodedata.combining(char))
+    text = text.replace("\r\n", "\n")
     text = text.replace("\r", "\n")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)

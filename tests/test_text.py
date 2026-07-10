@@ -8,7 +8,7 @@ from transparencia_comprovantes.text import (
 
 
 def test_normalize_text_removes_accents_and_extra_spaces():
-    assert normalize_text(" Ação\tde\r\nPagamento  ") == "Acao\nPagamento"
+    assert normalize_text(" Ação\tde\r\nPagamento  ") == "Acao de\nPagamento"
 
 
 def test_extract_br_date_returns_iso_date():
