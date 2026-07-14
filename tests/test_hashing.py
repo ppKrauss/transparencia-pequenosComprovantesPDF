@@ -1,4 +1,4 @@
-from transparencia_comprovantes.hashing import file_digest
+from transparencia_comprovantes.utils.hashing import file_digest
 
 
 def test_file_digest_uses_hashlib(tmp_path):

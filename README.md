@@ -1,133 +1,74 @@
 # transparencia-pequenosComprovantesPDF
 
-Ferramentas para extrair dados estruturados de pequenos comprovantes bancarios em
-PDF e imagens. O projeto agora usa um pacote Python modular, uma CLI unificada e
-regras de extracao em YAML para facilitar manutencao por colaboradores humanos e
-IA.
+Extrai dados estruturados de pequenos comprovantes bancarios em PDF e imagens.
+O projeto oferece uma unica CLI, regras YAML editaveis e saidas CSV/XLSX.
 
 ## Estrutura
 
 ```text
 .
-├── src/
-│   ├── scanPDFs.py                         # wrapper de compatibilidade
-│   ├── scanIMGs.py                         # wrapper de compatibilidade
-│   └── transparencia_comprovantes/
-│       ├── cli.py                          # CLI comprovantes-scan
-│       ├── pdf.py                          # processamento de PDFs textuais
-│       ├── images.py                       # processamento de imagens/OCR
-│       ├── hashing.py                      # hashes via hashlib
-│       ├── output.py                       # CSV/XLSX
-│       └── patterns/
-│           ├── config.yml                  # configuracoes de execucao
-│           └── rules.yml                   # regex e regras de extracao
-├── tests/                                  # testes unitarios
-├── Dockerfile
-├── docker-compose.yml
-└── .github/workflows/ci-cd.yml
+|-- data/
+|   |-- config.yml             # configuracoes de execucao
+|   `-- rules.yml              # regex e regras de extracao
+|-- src/
+|   `-- transparencia_comprovantes/
+|       |-- cli.py             # CLI unificada
+|       |-- config.py          # carregamento dos YAMLs
+|       |-- output.py          # CSV e XLSX
+|       |-- processors/
+|       |   |-- pdf.py         # PDFs textuais
+|       |   `-- images.py      # imagens e OCR
+|       `-- utils/
+|           |-- hashing.py     # hashes via hashlib
+|           `-- text.py        # normalizacao e extracao textual
+|-- tests/
+|-- Dockerfile
+`-- docker-compose.yml
 ```
 
-## Instalacao local
+`src/transparencia_comprovantes` e o pacote instalavel do Python. Nao ha scripts
+duplicados ou wrappers de compatibilidade em `src`.
+
+## Instalacao
 
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 ```
 
-Para OCR de imagens, instale tambem o Tesseract no sistema operacional. No
-container isso ja esta configurado.
+O processamento de imagens tambem requer Tesseract. A imagem Docker ja inclui
+os idiomas portugues e ingles.
 
-## CLI unificada
-
-Processar PDFs de uma pasta:
+## Uso
 
 ```bash
-comprovantes-scan pdf ./resolvido -o meusComprovantesPDF.csv
+# PDFs: CSV e XLSX
+comprovantes-scan pdf ./entrada -o ./saida/comprovantes.csv
+
+# PDFs: somente CSV
+comprovantes-scan pdf ./entrada -o ./saida/comprovantes.csv --no-xlsx
+
+# Imagens, pasta ou ZIP
+comprovantes-scan images ./imagens ./saida/comprovantes.xlsx
 ```
 
-Gerar CSV e XLSX:
+Por padrao, a CLI carrega `data/config.yml` e `data/rules.yml`. Para usar outro
+conjunto completo de dados:
 
 ```bash
-comprovantes-scan pdf ./resolvido -o meusComprovantesPDF.csv
+comprovantes-scan --data-dir ./outras-regras pdf ./entrada -o saida.csv
 ```
 
-Gerar somente CSV:
-
-```bash
-comprovantes-scan pdf ./resolvido -o meusComprovantesPDF.csv --no-xlsx
-```
-
-Usar arquivo YAML alternativo de padroes:
-
-```bash
-comprovantes-scan pdf --patterns ./meus-padroes.yml ./resolvido -o saida.csv
-```
-
-Tambem e possivel apontar `--patterns` para uma pasta contendo `config.yml` e
-`rules.yml`:
-
-```bash
-comprovantes-scan pdf --patterns ./minhas-regras ./resolvido -o saida.csv
-```
-
-Processar imagens, pasta ou ZIP por OCR:
-
-```bash
-comprovantes-scan images ./imagens saida_comprovantes.xlsx
-comprovantes-scan images comprovantes1.zip saida_comprovantes.xlsx
-```
-
-Os wrappers antigos continuam disponiveis:
-
-```bash
-python src/scanPDFs.py ./resolvido -o saida.csv
-python src/scanIMGs.py ./imagens saida_comprovantes.xlsx
-```
-
-## Regras em YAML
-
-As configuracoes e regex ficam separadas em:
-
-```text
-src/transparencia_comprovantes/patterns/config.yml
-src/transparencia_comprovantes/patterns/rules.yml
-```
-
-O `config.yml` concentra parametros de execucao:
-
-- `settings.csv_separator`
-- `settings.stop_on_no_pattern`
-- `settings.stop_on_size_error`
-- `settings.max_text_chars`
-- `settings.layout_bytes`
-- `settings.pdf_csv_header`
-
-O `rules.yml` separa regras de PDF e imagens/OCR:
-
-- `pdf.document_patterns`: identifica tipo do comprovante.
-- `pdf.emitter_patterns`: identifica emissor/banco.
-- `pdf.field_patterns`: extrai campos por emissor.
-- `images.marker_terms`: termos minimos para reconhecer comprovantes via OCR.
-- `images.type_patterns`: identifica tipo via texto OCR.
-- `images.field_patterns`: extrai campos via texto OCR.
-
-Para adicionar um banco ou tipo de comprovante, prefira editar `rules.yml` e
-criar testes com textos anonimizados em `tests/`. Ajustes operacionais devem ir
-para `config.yml`.
+Os dois arquivos sao obrigatorios. `config.yml` contem limites e opcoes de
+execucao; `rules.yml` contem os padroes de PDF e OCR. Tambem e possivel definir
+o diretorio pela variavel `COMPROVANTES_DATA_DIR`.
 
 ## Docker
 
-Build da imagem:
-
 ```bash
 docker build -t transparencia-comprovantes:local .
-```
-
-Uso com uma pasta local montada:
-
-```bash
-docker run --rm -v "$PWD/data:/data" transparencia-comprovantes:local \
-  pdf /data/input -o /data/out/comprovantes.csv
+docker run --rm -v "$PWD/arquivos:/arquivos" transparencia-comprovantes:local \
+  pdf /arquivos/entrada -o /arquivos/saida/comprovantes.csv
 ```
 
 Com Compose:
@@ -136,47 +77,15 @@ Com Compose:
 docker compose run --rm scanner
 ```
 
-O `Dockerfile` instala as dependencias Python e o Tesseract com idioma
-portugues (`tesseract-ocr-por`).
-
 ## Testes
 
 ```bash
 pytest
 ```
 
-Os testes atuais cobrem hashing com `hashlib`, normalizacao de texto,
-carregamento/compilacao do YAML e extracao por textos sinteticos. Testes com
-PDFs ou imagens reais devem usar fixtures anonimizadas.
+A suite valida configuracao, regex, hashing, classificacao e extracao de PDF/OCR,
+tipos de entrada, geracao CSV/XLSX e fluxos da CLI. O limite minimo de cobertura
+e 85% e e aplicado localmente e no CI.
 
-## GitHub PR-CI-CD
-
-O workflow esta em:
-
-```text
-.github/workflows/ci-cd.yml
-```
-
-Ele executa:
-
-1. CI em pull requests e pushes para `main`.
-2. Instalacao de dependencias Python e Tesseract.
-3. `pytest`.
-4. Build da imagem Docker.
-5. Um job de CD seguro apenas em push para `main`, por enquanto com placeholder.
-
-### Como configurar no GitHub
-
-1. Suba o repositorio para o GitHub com a branch principal chamada `main`.
-2. Abra uma Pull Request normalmente.
-3. O job `Tests` deve passar antes do merge.
-4. Ao aceitar/mergear a PR em `main`, o workflow roda novamente e executa o job
-   `CD skeleton`.
-5. Quando o destino de CD for definido, substitua o placeholder por uma acao
-   concreta, por exemplo publicar imagem no GitHub Container Registry, gerar
-   release, ou acionar deploy externo.
-
-Para publicar imagens no GHCR futuramente, o caminho usual e adicionar login com
-`GITHUB_TOKEN`, definir tags e executar `docker push`. O workflow ja declara
-`packages: write`, mas nao publica nada ate essa etapa ser explicitamente
-implementada.
+O workflow `.github/workflows/ci-cd.yml` executa testes, build Docker e publica a
+imagem no GHCR em pushes para `main`.

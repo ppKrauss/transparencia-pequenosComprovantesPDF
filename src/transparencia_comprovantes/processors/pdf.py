@@ -8,9 +8,9 @@ from typing import Any
 
 import pypdf
 
-from .config import compile_entries, compile_field_groups
-from .hashing import file_digest
-from .text import escape_separator, extract_br_date, first_captured_group
+from ..config import compile_entries, compile_field_groups
+from ..utils.hashing import file_digest
+from ..utils.text import escape_separator, extract_br_date, first_captured_group
 
 
 @dataclass

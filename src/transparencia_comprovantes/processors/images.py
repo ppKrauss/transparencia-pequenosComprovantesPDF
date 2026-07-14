@@ -5,8 +5,8 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-from .config import compile_entries, compile_field_groups
-from .text import first_captured_group, normalize_text
+from ..config import compile_entries, compile_field_groups
+from ..utils.text import first_captured_group, normalize_text
 
 
 IMG_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff"}

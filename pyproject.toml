@@ -21,6 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
+  "pytest-cov>=5.0",
 ]
 
 [project.scripts]
@@ -29,9 +30,13 @@ comprovantes-scan = "transparencia_comprovantes.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-"transparencia_comprovantes.patterns" = ["*.yml"]
+[tool.setuptools.data-files]
+"share/transparencia-comprovantes/data" = ["data/*.yml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+addopts = "--cov=transparencia_comprovantes --cov-report=term-missing --cov-fail-under=85"
+
+[tool.coverage.run]
+omit = ["src/transparencia_comprovantes/__main__.py"]

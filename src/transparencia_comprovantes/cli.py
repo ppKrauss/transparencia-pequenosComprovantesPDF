@@ -4,9 +4,9 @@ import argparse
 from pathlib import Path
 
 from .config import load_config
-from .images import ImageProcessor, image_files_from_input
 from .output import write_image_outputs, write_pdf_xlsx, write_pipe_csv
-from .pdf import PdfProcessor, PdfRunOptions
+from .processors.images import ImageProcessor, image_files_from_input
+from .processors.pdf import PdfProcessor, PdfRunOptions
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -15,17 +15,17 @@ def build_parser() -> argparse.ArgumentParser:
         description="Extrai dados de comprovantes PDF e imagens usando regras em YAML.",
     )
     parser.add_argument(
-        "--patterns",
-        help="Arquivo YAML alternativo com padroes de extracao.",
+        "--data-dir",
+        help="Pasta contendo config.yml e rules.yml (padrao: ./data do projeto).",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     pdf_parser = subparsers.add_parser("pdf", help="Processa comprovantes PDF textuais.")
     pdf_parser.add_argument(
-        "--patterns",
+        "--data-dir",
         default=argparse.SUPPRESS,
-        help="Arquivo YAML alternativo com padroes de extracao.",
+        help="Pasta contendo config.yml e rules.yml.",
     )
     pdf_parser.add_argument(
         "input_path",
@@ -55,9 +55,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     image_parser = subparsers.add_parser("images", help="Processa imagens ou ZIP por OCR.")
     image_parser.add_argument(
-        "--patterns",
+        "--data-dir",
         default=argparse.SUPPRESS,
-        help="Arquivo YAML alternativo com padroes de extracao.",
+        help="Pasta contendo config.yml e rules.yml.",
     )
     image_parser.add_argument(
         "input_path",
@@ -75,7 +75,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_pdf(args: argparse.Namespace) -> int:
-    config = load_config(args.patterns)
+    config = load_config(args.data_dir)
     settings = config.get("settings", {})
     options = PdfRunOptions(
         stop_on_no_pattern=False
@@ -104,7 +104,7 @@ def run_pdf(args: argparse.Namespace) -> int:
 
 
 def run_images(args: argparse.Namespace) -> int:
-    config = load_config(args.patterns)
+    config = load_config(args.data_dir)
     input_path = Path(args.input_path)
     output_xlsx = Path(args.output_xlsx)
 
