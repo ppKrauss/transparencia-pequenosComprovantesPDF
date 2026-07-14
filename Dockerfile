@@ -14,6 +14,7 @@ WORKDIR /app
 
 COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
+COPY data ./data
 
 RUN pip install .
 
